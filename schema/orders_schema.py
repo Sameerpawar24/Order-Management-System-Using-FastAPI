@@ -43,3 +43,7 @@ class OrderRead(BaseModel):
 class OrderStatusUpdate(BaseModel):
     new_status: str
     note: str = None
+
+
+# class DeleteOrder(BaseModel):
+#     roc:str

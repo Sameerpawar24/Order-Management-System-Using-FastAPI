@@ -5,6 +5,7 @@ from models.audit import AuditLog
 from decimal import Decimal
 from fastapi import HTTPException,status
 from fastapi.responses import JSONResponse
+from app.database import get_db
 
 
 def place_order(db: Session, user_id: int, shipping_address: dict, items: list):
@@ -61,6 +62,7 @@ def place_order(db: Session, user_id: int, shipping_address: dict, items: list):
         total += line_total
 
         # Add order item
+        """bulk create"""
         order_item = OrderItem(
             order_id=order.id,
             product_id=product_id,
@@ -70,6 +72,7 @@ def place_order(db: Session, user_id: int, shipping_address: dict, items: list):
         db.add(order_item)
 
         # Audit log
+        """bulk create"""
         audit = AuditLog(
             entity="product",
             entity_id=product_id,
@@ -134,3 +137,53 @@ def change_order_status(db: Session, order: Order, new_status: OrderStatus, chan
 def get_status_order(db:Session,order_id:int):
     return db.query(OrderStatusHistory).filter(OrderStatusHistory.order_id == order_id).order_by(OrderStatusHistory.new_status.desc()).first()
     
+
+
+
+def cancel_order(db: Session, order: Order, user_id: int):
+    # validate transitions
+    current = order.status
+
+    if current == OrderStatus.cancelled:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail={"error": "Order is already cancelled"}
+        )
+
+    if current in [OrderStatus.delivered, OrderStatus.shipped]:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail={"error": "You cannot cancel this order"}
+        )
+
+    prev = current.value
+    new_status = OrderStatus.cancelled
+
+    # update status
+    order.status = new_status
+    db.add(order)
+
+    # history
+    hist = OrderStatusHistory(
+        order_id=order.id,
+        previous_status=prev,
+        new_status=new_status.value,
+        changed_by=user_id,
+        note="cancel_order"
+    )
+    db.add(hist)
+
+    # audit log
+    audit = AuditLog(
+        entity="order",
+        entity_id=order.id,
+        action="Order_cancelled",
+        performed_by=user_id,
+        before={"status": prev},
+        after={"status": new_status.value},
+    )
+    db.add(audit)
+
+    db.commit()
+    db.refresh(order)
+    return order

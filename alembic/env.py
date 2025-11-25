@@ -5,8 +5,8 @@ from sqlalchemy import pool
 
 from alembic import context
 from app.database import Base
-from models import orders,user,products,audit
-
+from models import orders,user,products,audit,role_permission,user_permission,permission
+from seed import rbac_seed
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.

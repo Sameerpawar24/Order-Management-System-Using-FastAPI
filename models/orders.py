@@ -8,6 +8,7 @@ class OrderStatus(str, enum.Enum):
     processed = "processed"
     shipped = "shipped"
     delivered = "delivered"
+    cancelled="cancelled"
 
 class Order(Base):
     __tablename__ = "orders"
@@ -46,3 +47,13 @@ class OrderStatusHistory(Base):
     created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
 
     order = relationship("Order", back_populates="status_history")
+
+
+
+# class DeleteOrder(Base):
+#     __tablename__ = "cancelled_order"
+#     id = Column(Integer, primary_key=True)
+#     order_id = Column(Integer, ForeignKey("orders.id"), nullable=False)
+#     roc=Column(String, default='Other')
+
+#     order = relationship("Order", back_populates="status_history")

@@ -6,7 +6,7 @@ import enum
 
 class RoleEnum(str, enum.Enum):
     admin = "admin"
-    support = "customer_support"
+    support = "customer_support"                                                             
     customer = "customer"
 
 class User(Base):
@@ -23,3 +23,5 @@ class User(Base):
     updated_at = Column(DateTime(timezone=True), onupdate=func.now(), server_default=func.now(), nullable=False)
 
     orders = relationship("Order", back_populates="user")
+    user_permissions = relationship("UserPermission", back_populates="user", cascade="all, delete-orphan")
+

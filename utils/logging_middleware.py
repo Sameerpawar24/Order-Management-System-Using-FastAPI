@@ -13,7 +13,7 @@ class RequestLoggingMiddleware(BaseHTTPMiddleware):
         start = time.time()
         user_id = None
 
-        # Try extracting user_id from JWT
+        # extracting user_id from JWT
         auth_header = request.headers.get("Authorization")
         if auth_header and auth_header.startswith("Bearer "):
             token = auth_header.split(" ")[1]
@@ -46,7 +46,7 @@ class RequestLoggingMiddleware(BaseHTTPMiddleware):
 
             response = JSONResponse(
                 status_code=500,
-                content={"detail": "Internal Server Error"}
+                content={'status_code':500,"detail": "Internal Server Error"}
             )
 
         #  STORE LOG INTO DATABASE
